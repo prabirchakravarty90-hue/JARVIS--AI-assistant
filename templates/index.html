@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jarvis - AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<style>
+        /* Reset some defaults */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                         Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+            color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            max-width: 600px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.2em;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 0;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            height: 300px;
+            overflow-y: auto;
+            background: #fafafa;
+            font-size: 1rem;
+        }
+
+        .chat-box > div {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            color: #333;
+        }
+
+        .jarvis {
+            background-color: #eee;
+            align-self: flex-start;
+            color: #444;
+        }
+
+        .input-area {
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #4a90e2;
+            border: none;
+            padding: 12px 24px;
+            color: white;
+            font-size: 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            user-select: none;
+        }
+
+        button:hover {
+            background-color: #357ABD;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px;
+                max-width: 100%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .chat-box {
+                height: 250px;
+                font-size: 0.9rem;
+            }
+
+            button {
+                width: 100%;
+                padding: 14px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+<body>
+    <div class="container">
+        <h1>👋 Hello, I'm Jarvis</h1>
+        <p class="subtitle">Your personal AI assistant</p>
+
+        <div class="chat-box" id="chat-box">
+            Messages will appear here
+        </div>
+
+        <div class="input-area">
+            <!-- Removed input box and send button -->
+            <button onclick="startListening()">🎤 Start Listening</button>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let waitingForCommand = false;
+
+        function appendMessage(sender, text) {
+            const chatBox = document.getElementById('chat-box');
+            const message = document.createElement('div');
+            message.className = sender;
+            message.innerText = text;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function startListening() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Your browser doesn't support voice recognition.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.continuous = true;
+
+            recognition.onresult = (event) => {
+                const lastResultIndex = event.results.length - 1;
+                const transcript = event.results[lastResultIndex][0].transcript.trim().toLowerCase();
+                console.log('Heard:', transcript);
+
+                if (!waitingForCommand) {
+                    // Listen for wake word "jarvis"
+                    if (transcript.includes('jarvis')) {
+                        waitingForCommand = true;
+                        speakText('Yes Prabir?');
+                        appendMessage('jarvis', 'Jarvis: Yes Prabir?');
+                        console.log('Wake word detected, waiting for command...');
+                    }
+                } else {
+                    // Received command after wake word
+                    waitingForCommand = false;
+                    console.log('Command received:', transcript);
+                    appendMessage('user', `You: ${transcript}`);
+
+                    // Send command to backend
+                    fetch('/process', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: transcript })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.action === 'speak') {
+                            appendMessage('jarvis', `Jarvis: ${data.text}`);
+                            speakText(data.text);
+                        } else if (data.action === 'open_url') {
+                            appendMessage('jarvis', `Jarvis: Opening ${data.url}`);
+                            window.open(data.url, '_blank');
+                        } else {
+                            appendMessage('jarvis', 'Jarvis: Unknown action');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        appendMessage('jarvis', 'Jarvis: Error processing command.');
+                    });
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+            };
+
+            recognition.onend = () => {
+                // Automatically restart recognition for continuous listening
+                recognition.start();
+            };
+
+            recognition.start();
+            appendMessage('jarvis', 'Jarvis is listening...');
+        }
+    </script>
+</body>
+</html>
