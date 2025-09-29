@@ -21,3 +21,4 @@ A voice-activated AI assistant using Python, Flask, and Web Speech API.
 
 ## License
 MIT
+[Live App](http://localhost:5000)
