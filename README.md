@@ -22,5 +22,9 @@ A voice-activated AI assistant using Python, Flask, and Web Speech API.
 ## License
 MIT
 [Live App for Mobile](https://nonproficient-unscavenged-eryn.ngrok-free.dev)
+
 [Live App for windows]( http://localhost:5000 )
+
+
+
 [Click Here](https://prabirchakravarty90-hue.github.io/JARVIS--AI-assistant/) for Demo
