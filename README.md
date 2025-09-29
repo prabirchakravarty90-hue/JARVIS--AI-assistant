@@ -21,4 +21,5 @@ A voice-activated AI assistant using Python, Flask, and Web Speech API.
 
 ## License
 MIT
-[Live App](http://localhost:5000)
+[Live App for Mobile](https://nonproficient-unscavenged-eryn.ngrok-free.dev)
+[Live App for windows]( http://localhost:5000 )
