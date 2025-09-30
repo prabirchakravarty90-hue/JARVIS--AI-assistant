@@ -5,7 +5,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #0f2027;  /* gradient base */
     background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
-    color: white;
+    color: rgb(0, 0, 0);
     height: 100vh;
     display: flex;
     align-items: center;
@@ -13,24 +13,39 @@ body {
 }
 
 .container {
-    width: 90%;
+    background: rgba(5, 4, 4, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    padding: 40px 30px;
     max-width: 600px;
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(5px);
+    width: 100%;
+    margin-top: 60px;
+    animation: fadeSlideIn 1s ease;
     text-align: center;
+    transition: all 0.3s ease;
 }
-
+.container:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
 h1 {
     margin: 0;
     font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
-
+.highlight {
+    color: #4a90e2;
+    font-weight: 800;
+}
 .subtitle {
     margin-bottom: 1.5rem;
-    color: #ccc;
+    color: black;
+    margin-top: 0;
+    font-style: italic;
+    opacity: 0.9;
 }
 
 .chat-box {
@@ -42,7 +57,16 @@ h1 {
     margin-bottom: 1rem;
     text-align: left;
 }
-
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 .user {
     color: #00d8ff;
     margin-bottom: 0.5rem;
