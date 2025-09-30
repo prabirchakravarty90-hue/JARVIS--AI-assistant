@@ -158,8 +158,8 @@
                 if (state === 'waiting_for_wakeword') {
                     if (transcript.includes('jarvis')) {
                         state = 'waiting_for_command';
-                        speakText('Yes Prabir?');
-                        appendMessage('jarvis', 'Jarvis: Yes Prabir?');
+                        speakText('Yes?');
+                        appendMessage('jarvis', 'Jarvis: Yes?');
                     }
                 } else if (state === 'waiting_for_command') {
                     state = 'waiting_for_wakeword';
@@ -226,3 +226,4 @@
     </script>
 </body>
 </html>
+
