@@ -6,19 +6,13 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="stylesheet" href="/static/style.css">
-    <meta charset="UTF-8" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Jarvis - AI Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<style>
-        /* Reset some defaults */
-        * {
-            box-sizing: border-box;
-        }
+    <link rel="stylesheet" href="static/style.css">
 
+    <style>
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
                          Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -32,7 +26,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-
         .container {
             background: white;
             max-width: 600px;
@@ -44,20 +37,17 @@
             flex-direction: column;
             gap: 20px;
         }
-
         h1 {
             font-size: 2rem;
             margin-bottom: 0.2em;
             text-align: center;
         }
-
         .subtitle {
             text-align: center;
             font-size: 1.1rem;
             color: #555;
             margin-top: 0;
         }
-
         .chat-box {
             flex-grow: 1;
             border: 1px solid #ddd;
@@ -68,7 +58,6 @@
             background: #fafafa;
             font-size: 1rem;
         }
-
         .chat-box > div {
             margin-bottom: 12px;
             padding: 8px 12px;
@@ -76,24 +65,20 @@
             max-width: 80%;
             word-wrap: break-word;
         }
-
         .user {
             background-color: #dcf8c6;
             align-self: flex-end;
             color: #333;
         }
-
         .jarvis {
             background-color: #eee;
             align-self: flex-start;
             color: #444;
         }
-
         .input-area {
             display: flex;
             justify-content: center;
         }
-
         button {
             background-color: #4a90e2;
             border: none;
@@ -105,56 +90,35 @@
             transition: background-color 0.3s ease;
             user-select: none;
         }
-
         button:hover {
             background-color: #357ABD;
         }
-
-        /* Responsive adjustments */
         @media (max-width: 640px) {
-            .container {
-                padding: 16px;
-                max-width: 100%;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .subtitle {
-                font-size: 1rem;
-            }
-
-            .chat-box {
-                height: 250px;
-                font-size: 0.9rem;
-            }
-
-            button {
-                width: 100%;
-                padding: 14px;
-                font-size: 1.1rem;
-            }
+            .container { padding: 16px; max-width: 100%; }
+            h1 { font-size: 1.5rem; }
+            .subtitle { font-size: 1rem; }
+            .chat-box { height: 250px; font-size: 0.9rem; }
+            button { width: 100%; padding: 14px; font-size: 1.1rem; }
         }
     </style>
+</head>
 <body>
     <div class="container">
-        <h1>👋 Hello, I'm Jarvis</h1>
-        <p class="subtitle">Your personal AI assistant</p>
+        <h1>🤖 Hello, I'm <span class="highlight">Jarvis</span></h1>
+        <p class="subtitle">Your personal AI assistant, ready to serve.</p>
 
         <div class="chat-box" id="chat-box">
             Messages will appear here
         </div>
 
         <div class="input-area">
-            <!-- Removed input box and send button -->
             <button onclick="startListening()">🎤 Start Listening</button>
         </div>
     </div>
 
     <script>
         let recognition;
-        let waitingForCommand = false;
+        let state = 'idle'; // idle, waiting_for_wakeword, waiting_for_command
 
         function appendMessage(sender, text) {
             const chatBox = document.getElementById('chat-box');
@@ -176,54 +140,74 @@
                 return;
             }
 
+            speakText("Initializing Jarvis");
+            appendMessage('jarvis', 'Jarvis: Initializing...');
+
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-
             recognition.lang = 'en-US';
             recognition.interimResults = false;
             recognition.continuous = true;
 
+            state = 'waiting_for_wakeword';
+
             recognition.onresult = (event) => {
-                const lastResultIndex = event.results.length - 1;
-                const transcript = event.results[lastResultIndex][0].transcript.trim().toLowerCase();
+                const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
                 console.log('Heard:', transcript);
 
-                if (!waitingForCommand) {
-                    // Listen for wake word "jarvis"
+                if (state === 'waiting_for_wakeword') {
                     if (transcript.includes('jarvis')) {
-                        waitingForCommand = true;
+                        state = 'waiting_for_command';
                         speakText('Yes Prabir?');
                         appendMessage('jarvis', 'Jarvis: Yes Prabir?');
-                        console.log('Wake word detected, waiting for command...');
                     }
-                } else {
-                    // Received command after wake word
-                    waitingForCommand = false;
-                    console.log('Command received:', transcript);
+                } else if (state === 'waiting_for_command') {
+                    state = 'waiting_for_wakeword';
                     appendMessage('user', `You: ${transcript}`);
 
-                    // Send command to backend
-                    fetch('/process', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ command: transcript })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.action === 'speak') {
-                            appendMessage('jarvis', `Jarvis: ${data.text}`);
-                            speakText(data.text);
-                        } else if (data.action === 'open_url') {
-                            appendMessage('jarvis', `Jarvis: Opening ${data.url}`);
-                            window.open(data.url, '_blank');
-                        } else {
-                            appendMessage('jarvis', 'Jarvis: Unknown action');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error:', err);
-                        appendMessage('jarvis', 'Jarvis: Error processing command.');
-                    });
+                    // Built-in commands
+                    const builtInCommands = {
+                        "open google": "https://www.google.com",
+                        "open chatgpt": "https://chat.openai.com",
+                        "open instagram": "https://www.instagram.com",
+                        "open github": "https://www.github.com",
+                        "open youtube": "https://www.youtube.com",
+                        "open facebook": "https://www.facebook.com"
+                    };
+
+                    const matchedCommand = Object.keys(builtInCommands).find(cmd => transcript.includes(cmd));
+
+                    if (matchedCommand) {
+                        const url = builtInCommands[matchedCommand];
+                        const siteName = matchedCommand.replace("open ", "").replace(/\b\w/g, c => c.toUpperCase());
+                        speakText(`Opening ${siteName}`);
+                        appendMessage('jarvis', `Jarvis: Opening ${siteName}`);
+                        window.open(url, '_blank');
+                    } else {
+                        // Send to backend if not matched
+                        fetch('/process', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: transcript })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.action === 'speak') {
+                                appendMessage('jarvis', `Jarvis: ${data.text}`);
+                                speakText(data.text);
+                            } else if (data.action === 'open_url') {
+                                appendMessage('jarvis', `Jarvis: Opening ${data.url}`);
+                                speakText(`Opening ${data.url}`);
+                                window.open(data.url, '_blank');
+                            } else {
+                                appendMessage('jarvis', 'Jarvis: Unknown action');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error:', err);
+                            appendMessage('jarvis', 'Jarvis: Error processing command.');
+                        });
+                    }
                 }
             };
 
@@ -232,7 +216,7 @@
             };
 
             recognition.onend = () => {
-                // Automatically restart recognition for continuous listening
+                // Automatically restart
                 recognition.start();
             };
 
