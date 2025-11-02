@@ -27,4 +27,4 @@ MIT
 
 
 
-[Click Here](https://prabirchakravarty90-hue.github.io/JARVIS--AI-assistant/) for Demo
+[Click Here](https://prabirchakravarty90-hue.github.io/JARVIS--AI-assistant/) for Demo.
