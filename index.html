@@ -3,51 +3,211 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>J.A.R.V.I.S. — Neon Voice UI (Debuggable)</title>
+  <title>J.A.R.V.I.S. — Neon Voice UI (Responsive)</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg-1:#02060f; --bg-2:#071728; --neon:#00e5ff; --glass-border:rgba(0,229,255,0.12);
+      --bg-1:#02060f;
+      --bg-2:#071728;
+      --neon:#00e5ff;
+      --glass-border:rgba(0,229,255,0.12);
       --shadow:0 8px 30px rgba(0,0,0,0.6);
+
+      /* responsive scale tokens */
+      --container-max: 1100px;
+      --gutter: clamp(12px, 2.5vw, 28px);
+      --pad-main: clamp(14px, 2.2vw, 28px);
+      --radius: 14px;
+      --mic-size: clamp(56px, 9vw, 84px);
+      --wave-width: clamp(180px, 30vw, 320px);
+      --h1-size: clamp(14px, 1.6vw, 18px);
+      --cmd-size: clamp(18px, 3.5vw, 28px);
     }
+
     *{box-sizing:border-box;margin:0;padding:0}
     html,body,#app{height:100%}
     body{
       font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-      background:linear-gradient(180deg,var(--bg-1),var(--bg-2));
-      color:#cfeef7; padding:28px; display:flex;justify-content:center;
+      background:radial-gradient(1200px 800px at 10% 10%, rgba(0,229,255,0.02), transparent 8%),
+                 linear-gradient(180deg,var(--bg-1),var(--bg-2));
+      color:#cfeef7;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding: var(--gutter);
+      display:flex;
+      justify-content:center;
     }
-    .jarvis{ width:min(1100px,96vw); display:grid; grid-template-columns:1fr 360px; gap:24px; }
-    .main{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:22px; box-shadow:var(--shadow); border:1px solid var(--glass-border); min-height:420px; position:relative; }
-    .header{ display:flex; align-items:center; gap:14px; margin-bottom:12px; }
-    h1{ font-family:Orbitron, sans-serif; color:var(--neon); letter-spacing:4px; font-size:18px; margin:0 }
+
+    .jarvis{
+      width: min(var(--container-max), 96vw);
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap: var(--gutter);
+      align-items:start;
+      align-content:start;
+    }
+
+    /* Make columns flexible on narrower screens */
+    @media (max-width:1100px){
+      .jarvis { grid-template-columns: 1fr 300px; }
+    }
+    @media (max-width:900px){
+      .jarvis { grid-template-columns: 1fr; }
+    }
+
+    .main{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: var(--radius);
+      padding: var(--pad-main);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(6px) saturate(120%);
+      min-height: 380px;
+    }
+
+    .header{ display:flex; align-items:center; gap:14px; margin-bottom:12px; flex-wrap:wrap; }
+    h1{ font-family:Orbitron, sans-serif; color:var(--neon); letter-spacing:4px; font-size:var(--h1-size); margin:0 }
     .sub{ font-size:13px; opacity:0.8; color:#bfeffb }
-    .command-box{ display:flex; gap:16px; align-items:center; padding:16px; border-radius:12px; border:1px solid rgba(0,229,255,0.06); background:rgba(255,255,255,0.01) }
-    .command-text h2{ font-family:Orbitron, sans-serif; color:var(--neon); font-size:28px; margin:0 }
-    .command-sub{ font-size:13px; color:#bcdfe7; opacity:0.9 }
-    .waveform{ width:260px; height:40px; display:flex; gap:6px; align-items:end }
-    .bar{ width:6px; background:linear-gradient(180deg, rgba(0,229,255,0.95), rgba(0,229,255,0.6)); border-radius:3px; transform-origin:bottom; animation:bounce 1100ms infinite ease-in-out }
-    .bar:nth-child(1){ animation-delay:-1.02s; height:28% } .bar:nth-child(2){ animation-delay:-0.92s; height:48% } .bar:nth-child(3){ animation-delay:-0.82s; height:68% } .bar:nth-child(4){ animation-delay:-0.72s; height:36% } .bar:nth-child(5){ animation-delay:-0.62s; height:56% }
+
+    .command-box{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid rgba(0,229,255,0.06);
+      background:rgba(255,255,255,0.01);
+      flex-wrap:wrap;
+    }
+
+    .command-text{ flex:1; min-width: 0; } /* allows truncation on small screens */
+    .command-text h2{
+      font-family:Orbitron, sans-serif;
+      color:var(--neon);
+      font-size: var(--cmd-size);
+      line-height:1.05;
+      margin:0 0 6px 0;
+      word-break:break-word;
+    }
+    .command-sub{ font-size:13px; color:#bcdfe7; opacity:0.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .waveform{
+      width: var(--wave-width);
+      max-width: 44%;
+      height: clamp(36px, 5.5vw, 46px);
+      display:flex;
+      gap:6px;
+      align-items:end;
+      justify-self:end;
+    }
+    /* ensure waveform shrinks gracefully on very small screens */
+    @media (max-width:500px){
+      .waveform{ max-width: 50%; width: 40%; }
+    }
+
+    .bar{
+      width: clamp(4px, 0.9vw, 6px);
+      background:linear-gradient(180deg, rgba(0,229,255,0.95), rgba(0,229,255,0.6));
+      border-radius:3px;
+      box-shadow: 0 4px 12px rgba(0,229,255,0.07), inset 0 -2px 6px rgba(255,255,255,0.05);
+      transform-origin:bottom;
+      animation:bounce 1100ms infinite ease-in-out;
+      opacity:0.95;
+    }
+    .bar:nth-child(1){ animation-delay:-1.02s; height:28% }
+    .bar:nth-child(2){ animation-delay:-0.92s; height:48% }
+    .bar:nth-child(3){ animation-delay:-0.82s; height:68% }
+    .bar:nth-child(4){ animation-delay:-0.72s; height:36% }
+    .bar:nth-child(5){ animation-delay:-0.62s; height:56% }
+
     @keyframes bounce {0%{transform:scaleY(.28)}50%{transform:scaleY(1.1)}100%{transform:scaleY(.28)}}
-    .controls{ margin-top:14px; display:flex; align-items:center; gap:12px }
-    .mic{ width:78px; height:78px; border-radius:50%; display:grid;place-items:center; cursor:pointer; border:1px solid rgba(0,229,255,0.12); background:radial-gradient(circle at 30% 20%, rgba(0,229,255,0.02), transparent 30%) }
+
+    .controls{ margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .mic{
+      width: var(--mic-size);
+      height: var(--mic-size);
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      border:1px solid rgba(0,229,255,0.12);
+      background: radial-gradient(circle at 30% 20%, rgba(0,229,255,0.02), transparent 30%);
+      transition: transform .12s ease, box-shadow .12s ease;
+      touch-action: manipulation;
+    }
+    .mic:active{ transform: scale(.98) }
     .mic.listening{ box-shadow:0 12px 40px rgba(0,229,255,0.12) }
-    .status{ margin-left:12px; font-size:13px; color:#bfeffb }
-    .debug{ margin-top:12px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; font-size:13px; color:#9feffc; max-height:120px; overflow:auto; border:1px solid rgba(0,229,255,0.04) }
-    .right { background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02)); border-radius:12px; padding:14px; border:1px solid rgba(0,229,255,0.06) }
-    .hint{ font-size:13px; color:#bfeffb; margin-top:10px }
-    .manual { margin-top:10px; display:flex; gap:8px; }
-    input[type="text"]{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:#cfeef7; flex:1 }
-    button{ background:var(--neon); color:#022; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600 }
-    small.note{ display:block; margin-top:8px; color:#9fdfee; opacity:0.8 }
-    @media (max-width:900px){ .jarvis{ grid-template-columns:1fr } }
+
+    .status{ margin-left:8px; font-size:13px; color:#bfeffb; min-width:120px; }
+    .debug{ margin-top:12px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; font-size:13px; color:#9feffc; max-height:160px; overflow:auto; border:1px solid rgba(0,229,255,0.04) }
+
+    .right{
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+      border-radius:12px;
+      padding:14px;
+      border:1px solid rgba(0,229,255,0.06);
+      min-height:120px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .hint{ font-size:13px; color:#bfeffb; margin-top:6px }
+    .manual{ margin-top:10px; display:flex; gap:8px; }
+    input[type="text"]{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:transparent;
+      color:#cfeef7;
+      flex:1;
+      min-width:0;
+      font-size:14px;
+    }
+    button{
+      background:var(--neon);
+      color:#022;
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      min-width:64px;
+    }
+
+    small.note{ display:block; margin-top:8px; color:#9fdfee; opacity:0.9; font-size:12px }
+
+    /* Stack manual inputs and controls on small screens */
+    @media (max-width:520px){
+      .manual{ flex-direction:column; }
+      .controls{ gap:10px; align-items:flex-start; }
+      .status{ margin-left:0; }
+      .command-box{ padding:12px; gap:12px; }
+      .right{ padding:12px; }
+      .jarvis{ gap:16px; }
+      body{ padding:14px; }
+    }
+
+    /* make the right column appear below the main on small screens */
+    @media (max-width:900px){
+      .right{ order:2; width:100%; }
+      .main{ order:1; }
+    }
+
+    /* reduced motion fallback */
+    @media (prefers-reduced-motion: reduce){
+      .bar{ animation:none; transform:none }
+      .mic.listening::after { animation:none; opacity:0.6; }
+    }
   </style>
 </head>
 <body>
   <div class="jarvis" id="app">
-    <main class="main">
+    <main class="main" role="main" aria-label="Jarvis main interface">
       <div class="header">
         <div>
           <h1>J . A . R . V . I . S</h1>
@@ -66,17 +226,18 @@
         </div>
       </div>
 
-      <div class="controls">
+      <div class="controls" role="group" aria-label="voice controls">
         <div id="micBtn" class="mic" role="button" tabindex="0" aria-label="toggle listening">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11c0 3.866 3.582 7 8 7s8-3.134 8-7"/><path d="M12 20v2"/></svg>
         </div>
-        <div>
+
+        <div style="display:flex;flex-direction:column;gap:6px;">
           <div class="status" id="statusText">Status: <strong id="stat">idle</strong></div>
-          <small class="note">Make sure page is served over HTTPS or localhost and allow microphone permission.</small>
+          <small class="note">Use HTTPS or localhost. Allow microphone permission when prompted.</small>
         </div>
       </div>
 
-      <div class="manual">
+      <div class="manual" aria-hidden="false">
         <input id="manualInput" type="text" placeholder='Type a test command (e.g., "open hub" or "search for css grid")' />
         <button id="manualBtn">Run</button>
       </div>
@@ -84,8 +245,9 @@
       <div class="debug" id="debugLog" aria-hidden="false">Debug log</div>
     </main>
 
-    <aside class="right">
-      <h4 style="margin:0 0 8px 0; color:var(--neon); font-family:Orbitron, sans-serif">Built-in Commands</h4>
+    <aside class="right" role="complementary" aria-label="Built-in commands and hints">
+      <h4 style="margin:0 0 4px 0; color:var(--neon); font-family:Orbitron, sans-serif">Built-in Commands</h4>
+
       <div style="font-size:13px; color:#bfeffb; line-height:1.6">
         open youtube · open chat · open hub · open google · open gmail · open stack overflow<br>
         open spotify · open amazon · open flipkart · open linkedin · open slack<br>
@@ -119,18 +281,12 @@
       }
 
       // built-in commands (Chat -> "open chat", GitHub -> "open hub")
-      // I also keep the original phrases as aliases ("open chatgpt", "open github")
       const builtInCommands = {
         "open youtube":"https://www.youtube.com",
-
-        // Chat (primary new command: "open chat")
         "open chat":"https://chat.openai.com",
         "open chatgpt":"https://chat.openai.com",
-
-        // Hub (primary new command: "open hub")
         "open hub":"https://github.com",
         "open github":"https://github.com",
-
         "open google":"https://www.google.com",
         "search google":"https://www.google.com",
         "open bard":"https://bard.google.com",
@@ -168,10 +324,8 @@
 
       function findCommand(transcript){
         const t = transcript.trim().toLowerCase();
-        // exact include
         let exact = Object.keys(builtInCommands).find(k => t.includes(k));
         if (exact) return {cmd: exact, url: builtInCommands[exact]};
-        // ordered-word match
         for (const k of Object.keys(builtInCommands)){
           const words = k.split(/\s+/).filter(Boolean);
           let idx = 0, ok = true;
@@ -204,7 +358,6 @@
 
         recognition.onstart = () => logDebug('recognition.onstart');
         recognition.onresult = (ev) => {
-          // build transcript from latest result
           const results = ev.results;
           const last = results[results.length - 1];
           let transcript = '';
@@ -213,12 +366,10 @@
           }
           transcript = transcript.trim();
           logDebug('onresult (raw):', transcript);
-          // If interim show quickly
           if (ev.results[results.length -1].isFinal === false){
             commandText.textContent = transcript + ' (listening...)';
             return;
           }
-          // final result handling
           handleTranscript(transcript.toLowerCase());
         };
 
@@ -299,7 +450,6 @@
       function handleTranscript(transcript){
         if (!transcript) return;
         logDebug('Final transcript:', transcript);
-        // wakeword state machine
         if (state === 'idle' || state === 'waiting_for_wakeword'){
           if (transcript.includes('jarvis')){
             state = 'waiting_for_command';
@@ -318,7 +468,6 @@
           commandText.textContent = cmd;
           commandHint.textContent = 'Processing...';
           state = 'waiting_for_wakeword';
-          // check search pattern
           const searchMatch = cmd.match(/(?:search|find|look up)\s+(?:for\s+)?(.+)/i);
           if (searchMatch && searchMatch[1]) {
             const q = encodeURIComponent(searchMatch[1].trim());
@@ -327,7 +476,6 @@
             window.open(`https://www.google.com/search?q=${q}`, '_blank');
             return;
           }
-          // built-in commands
           const match = findCommand(cmd);
           if (match) {
             const siteName = match.cmd.replace(/^open\s+/,'').replace(/\b\w/g,c=>c.toUpperCase());
@@ -336,7 +484,6 @@
             window.open(match.url, '_blank');
             return;
           }
-          // fallback: send to /process if available
           fetch('/process', {
             method:'POST',
             headers:{'Content-Type':'application/json'},
@@ -397,6 +544,14 @@
           try { recognition && recognition.start(); } catch(e){}
         }
       });
+
+      // small accessibility: increase tap area for mic on touch devices
+      function enlargeTapArea(){
+        const rect = micBtn.getBoundingClientRect();
+        if (rect.width < 64) micBtn.style.padding = '6px';
+      }
+      window.addEventListener('load', enlargeTapArea);
+      window.addEventListener('resize', enlargeTapArea);
 
     })();
   </script>
