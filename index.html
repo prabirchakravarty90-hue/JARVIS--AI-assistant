@@ -1,228 +1,404 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Jarvis - AI Assistant</title>
-    <link rel="stylesheet" href="static/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>J.A.R.V.I.S. — Neon Voice UI (Debuggable)</title>
 
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-                         Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f5f7fa;
-            color: #222;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            max-width: 600px;
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 0.2em;
-            text-align: center;
-        }
-        .subtitle {
-            text-align: center;
-            font-size: 1.1rem;
-            color: #555;
-            margin-top: 0;
-        }
-        .chat-box {
-            flex-grow: 1;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            height: 300px;
-            overflow-y: auto;
-            background: #fafafa;
-            font-size: 1rem;
-        }
-        .chat-box > div {
-            margin-bottom: 12px;
-            padding: 8px 12px;
-            border-radius: 12px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        .user {
-            background-color: #dcf8c6;
-            align-self: flex-end;
-            color: #333;
-        }
-        .jarvis {
-            background-color: #eee;
-            align-self: flex-start;
-            color: #444;
-        }
-        .input-area {
-            display: flex;
-            justify-content: center;
-        }
-        button {
-            background-color: #4a90e2;
-            border: none;
-            padding: 12px 24px;
-            color: white;
-            font-size: 1rem;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            user-select: none;
-        }
-        button:hover {
-            background-color: #357ABD;
-        }
-        @media (max-width: 640px) {
-            .container { padding: 16px; max-width: 100%; }
-            h1 { font-size: 1.5rem; }
-            .subtitle { font-size: 1rem; }
-            .chat-box { height: 250px; font-size: 0.9rem; }
-            button { width: 100%; padding: 14px; font-size: 1.1rem; }
-        }
-    </style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-1:#02060f; --bg-2:#071728; --neon:#00e5ff; --glass-border:rgba(0,229,255,0.12);
+      --shadow:0 8px 30px rgba(0,0,0,0.6);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body,#app{height:100%}
+    body{
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      background:linear-gradient(180deg,var(--bg-1),var(--bg-2));
+      color:#cfeef7; padding:28px; display:flex;justify-content:center;
+    }
+    .jarvis{ width:min(1100px,96vw); display:grid; grid-template-columns:1fr 360px; gap:24px; }
+    .main{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; padding:22px; box-shadow:var(--shadow); border:1px solid var(--glass-border); min-height:420px; position:relative; }
+    .header{ display:flex; align-items:center; gap:14px; margin-bottom:12px; }
+    h1{ font-family:Orbitron, sans-serif; color:var(--neon); letter-spacing:4px; font-size:18px; margin:0 }
+    .sub{ font-size:13px; opacity:0.8; color:#bfeffb }
+    .command-box{ display:flex; gap:16px; align-items:center; padding:16px; border-radius:12px; border:1px solid rgba(0,229,255,0.06); background:rgba(255,255,255,0.01) }
+    .command-text h2{ font-family:Orbitron, sans-serif; color:var(--neon); font-size:28px; margin:0 }
+    .command-sub{ font-size:13px; color:#bcdfe7; opacity:0.9 }
+    .waveform{ width:260px; height:40px; display:flex; gap:6px; align-items:end }
+    .bar{ width:6px; background:linear-gradient(180deg, rgba(0,229,255,0.95), rgba(0,229,255,0.6)); border-radius:3px; transform-origin:bottom; animation:bounce 1100ms infinite ease-in-out }
+    .bar:nth-child(1){ animation-delay:-1.02s; height:28% } .bar:nth-child(2){ animation-delay:-0.92s; height:48% } .bar:nth-child(3){ animation-delay:-0.82s; height:68% } .bar:nth-child(4){ animation-delay:-0.72s; height:36% } .bar:nth-child(5){ animation-delay:-0.62s; height:56% }
+    @keyframes bounce {0%{transform:scaleY(.28)}50%{transform:scaleY(1.1)}100%{transform:scaleY(.28)}}
+    .controls{ margin-top:14px; display:flex; align-items:center; gap:12px }
+    .mic{ width:78px; height:78px; border-radius:50%; display:grid;place-items:center; cursor:pointer; border:1px solid rgba(0,229,255,0.12); background:radial-gradient(circle at 30% 20%, rgba(0,229,255,0.02), transparent 30%) }
+    .mic.listening{ box-shadow:0 12px 40px rgba(0,229,255,0.12) }
+    .status{ margin-left:12px; font-size:13px; color:#bfeffb }
+    .debug{ margin-top:12px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; font-size:13px; color:#9feffc; max-height:120px; overflow:auto; border:1px solid rgba(0,229,255,0.04) }
+    .right { background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02)); border-radius:12px; padding:14px; border:1px solid rgba(0,229,255,0.06) }
+    .hint{ font-size:13px; color:#bfeffb; margin-top:10px }
+    .manual { margin-top:10px; display:flex; gap:8px; }
+    input[type="text"]{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:#cfeef7; flex:1 }
+    button{ background:var(--neon); color:#022; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600 }
+    small.note{ display:block; margin-top:8px; color:#9fdfee; opacity:0.8 }
+    @media (max-width:900px){ .jarvis{ grid-template-columns:1fr } }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🤖 Hello, I'm <span class="highlight">Jarvis</span></h1>
-        <p class="subtitle">Your personal AI assistant, ready to serve.</p>
+  <div class="jarvis" id="app">
+    <main class="main">
+      <div class="header">
+        <div>
+          <h1>J . A . R . V . I . S</h1>
+          <div class="sub">Neon voice assistant prototype</div>
+        </div>
+      </div>
 
-        <div class="chat-box" id="chat-box">
-            Messages will appear here
+      <div class="command-box" aria-live="polite">
+        <div class="command-text">
+          <h2 id="commandText">Jarvis Ready</h2>
+          <div id="commandHint" class="command-sub">Say "Jarvis" to wake me</div>
         </div>
 
-        <div class="input-area">
-            <button onclick="startListening()">🎤 Start Listening</button>
+        <div class="waveform" id="waveform" aria-hidden="true">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
         </div>
-    </div>
+      </div>
 
-    <script>
-        let recognition;
-        let state = 'idle'; // idle, waiting_for_wakeword, waiting_for_command
+      <div class="controls">
+        <div id="micBtn" class="mic" role="button" tabindex="0" aria-label="toggle listening">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11c0 3.866 3.582 7 8 7s8-3.134 8-7"/><path d="M12 20v2"/></svg>
+        </div>
+        <div>
+          <div class="status" id="statusText">Status: <strong id="stat">idle</strong></div>
+          <small class="note">Make sure page is served over HTTPS or localhost and allow microphone permission.</small>
+        </div>
+      </div>
 
-        function appendMessage(sender, text) {
-            const chatBox = document.getElementById('chat-box');
-            const message = document.createElement('div');
-            message.className = sender;
-            message.innerText = text;
-            chatBox.appendChild(message);
-            chatBox.scrollTop = chatBox.scrollHeight;
+      <div class="manual">
+        <input id="manualInput" type="text" placeholder='Type a test command (e.g., "open hub" or "search for css grid")' />
+        <button id="manualBtn">Run</button>
+      </div>
+
+      <div class="debug" id="debugLog" aria-hidden="false">Debug log</div>
+    </main>
+
+    <aside class="right">
+      <h4 style="margin:0 0 8px 0; color:var(--neon); font-family:Orbitron, sans-serif">Built-in Commands</h4>
+      <div style="font-size:13px; color:#bfeffb; line-height:1.6">
+        open youtube · open chat · open hub · open google · open gmail · open stack overflow<br>
+        open spotify · open amazon · open flipkart · open linkedin · open slack<br>
+        Also: "search for ..." / "find ..." will do a Google search.
+      </div>
+
+      <div class="hint">If voice doesn't work: use the manual input above to test command handling, or check console logs (F12).</div>
+    </aside>
+  </div>
+
+  <script>
+    (function(){
+      const micBtn = document.getElementById('micBtn');
+      const stat = document.getElementById('stat');
+      const debug = document.getElementById('debugLog');
+      const commandText = document.getElementById('commandText');
+      const commandHint = document.getElementById('commandHint');
+      const waveform = document.getElementById('waveform');
+      const manualInput = document.getElementById('manualInput');
+      const manualBtn = document.getElementById('manualBtn');
+
+      let recognition = null;
+      let listening = false;
+      let state = 'idle'; // idle | waiting_for_wakeword | waiting_for_command
+      const supports = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+      function logDebug(...args){
+        console.log(...args);
+        const now = new Date().toLocaleTimeString();
+        debug.innerText = `${now} — ${args.join(' ')}\n` + debug.innerText;
+      }
+
+      // built-in commands (Chat -> "open chat", GitHub -> "open hub")
+      // I also keep the original phrases as aliases ("open chatgpt", "open github")
+      const builtInCommands = {
+        "open youtube":"https://www.youtube.com",
+
+        // Chat (primary new command: "open chat")
+        "open chat":"https://chat.openai.com",
+        "open chatgpt":"https://chat.openai.com",
+
+        // Hub (primary new command: "open hub")
+        "open hub":"https://github.com",
+        "open github":"https://github.com",
+
+        "open google":"https://www.google.com",
+        "search google":"https://www.google.com",
+        "open bard":"https://bard.google.com",
+        "open bing chat":"https://www.bing.com/chat",
+        "open gitlab":"https://gitlab.com",
+        "open stack overflow":"https://stackoverflow.com",
+        "open npm":"https://www.npmjs.com",
+        "open hacker news":"https://news.ycombinator.com",
+        "open twitter":"https://twitter.com",
+        "open x":"https://twitter.com",
+        "open instagram":"https://www.instagram.com",
+        "open facebook":"https://www.facebook.com",
+        "open linkedin":"https://www.linkedin.com",
+        "open reddit":"https://www.reddit.com",
+        "open gmail":"https://mail.google.com",
+        "open google drive":"https://drive.google.com",
+        "open google calendar":"https://calendar.google.com",
+        "open notion":"https://www.notion.so",
+        "open trello":"https://trello.com",
+        "open slack":"https://app.slack.com",
+        "open spotify":"https://open.spotify.com",
+        "open netflix":"https://www.netflix.com",
+        "open amazon":"https://www.amazon.com",
+        "open flipkart":"https://www.flipkart.com",
+        "open ebay":"https://www.ebay.com",
+        "open mdn":"https://developer.mozilla.org",
+        "open docs":"https://developer.mozilla.org",
+        "open zoom":"https://zoom.us",
+        "open whatsapp":"https://web.whatsapp.com",
+        "open maps":"https://www.google.com/maps",
+        "open stackexchange":"https://stackexchange.com",
+        "open medium":"https://medium.com",
+        "open devto":"https://dev.to"
+      };
+
+      function findCommand(transcript){
+        const t = transcript.trim().toLowerCase();
+        // exact include
+        let exact = Object.keys(builtInCommands).find(k => t.includes(k));
+        if (exact) return {cmd: exact, url: builtInCommands[exact]};
+        // ordered-word match
+        for (const k of Object.keys(builtInCommands)){
+          const words = k.split(/\s+/).filter(Boolean);
+          let idx = 0, ok = true;
+          for (const w of words){
+            const pos = t.indexOf(w, idx);
+            if (pos === -1){ ok = false; break; }
+            idx = pos + w.length;
+          }
+          if (ok) return {cmd: k, url: builtInCommands[k]};
         }
+        return null;
+      }
 
-        function speakText(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(utterance);
+      function speakText(text){
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          speechSynthesis.cancel();
+          window.speechSynthesis.speak(u);
+        } catch(e){ logDebug('TTS error', e); }
+      }
+
+      function ensureRecognition(){
+        if (!supports) return null;
+        if (recognition) return recognition;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = true; // faster feedback
+        recognition.continuous = true;
+
+        recognition.onstart = () => logDebug('recognition.onstart');
+        recognition.onresult = (ev) => {
+          // build transcript from latest result
+          const results = ev.results;
+          const last = results[results.length - 1];
+          let transcript = '';
+          for (let i = 0; i < last.length; i++){
+            transcript += last[i].transcript;
+          }
+          transcript = transcript.trim();
+          logDebug('onresult (raw):', transcript);
+          // If interim show quickly
+          if (ev.results[results.length -1].isFinal === false){
+            commandText.textContent = transcript + ' (listening...)';
+            return;
+          }
+          // final result handling
+          handleTranscript(transcript.toLowerCase());
+        };
+
+        recognition.onerror = (ev) => {
+          logDebug('recognition.onerror', ev.error || ev);
+          if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
+            setStatus('permission-blocked');
+            speakText('Microphone permission denied. Please allow microphone access.');
+          }
+        };
+
+        recognition.onend = () => {
+          logDebug('recognition.onend');
+          if (listening) {
+            setTimeout(()=> {
+              try { recognition.start(); logDebug('restarted recognition'); } catch(e){ logDebug('restart failed', e); recognition = null; }
+            }, 300);
+          }
+        };
+
+        return recognition;
+      }
+
+      function setStatus(s){
+        const map = {
+          idle: 'idle',
+          listening: 'listening',
+          'permission-blocked': 'microphone permission denied',
+          unsupported: 'speech not supported'
+        };
+        stat.innerText = map[s] || s;
+      }
+
+      function startListening(){
+        if (!supports){
+          setStatus('unsupported');
+          logDebug('SpeechRecognition not supported in this browser.');
+          alert('SpeechRecognition not supported. Use Chrome/Edge with HTTPS or use the manual input to test commands.');
+          return;
         }
+        const r = ensureRecognition();
+        if (!r){
+          setStatus('unsupported');
+          return;
+        }
+        try {
+          r.start();
+          listening = true;
+          setStatus('listening');
+          micBtn.classList.add('listening');
+          commandText.textContent = 'Say "Jarvis" to wake';
+          commandHint.textContent = 'Listening...';
+          [...waveform.children].forEach((b)=> b.style.animationDuration = (700 + Math.random()*500) + 'ms');
+          logDebug('recognition.start() called');
+        } catch (e){
+          logDebug('start listening error', e);
+        }
+      }
 
-        function startListening() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Your browser doesn't support voice recognition.");
-                return;
+      function stopListening(){
+        listening = false;
+        if (recognition){
+          try { recognition.stop(); } catch(e){ logDebug('stop error', e); }
+        }
+        micBtn.classList.remove('listening');
+        setStatus('idle');
+        commandText.textContent = 'Jarvis Ready';
+        commandHint.textContent = 'Say "Jarvis" to wake me';
+        [...waveform.children].forEach((b,i)=> b.style.animationDuration = (1100 + (i*40)) + 'ms');
+      }
+
+      function toggleListening(){
+        if (listening) stopListening();
+        else startListening();
+      }
+
+      // core transcript handler
+      function handleTranscript(transcript){
+        if (!transcript) return;
+        logDebug('Final transcript:', transcript);
+        // wakeword state machine
+        if (state === 'idle' || state === 'waiting_for_wakeword'){
+          if (transcript.includes('jarvis')){
+            state = 'waiting_for_command';
+            speakText('Yes Prabir?');
+            commandText.textContent = 'Yes Prabir?';
+            commandHint.textContent = 'Listening for your command';
+            logDebug('Wakeword detected');
+            return;
+          } else {
+            logDebug('No wakeword in transcript');
+            return;
+          }
+        }
+        if (state === 'waiting_for_command'){
+          const cmd = transcript.toLowerCase();
+          commandText.textContent = cmd;
+          commandHint.textContent = 'Processing...';
+          state = 'waiting_for_wakeword';
+          // check search pattern
+          const searchMatch = cmd.match(/(?:search|find|look up)\s+(?:for\s+)?(.+)/i);
+          if (searchMatch && searchMatch[1]) {
+            const q = encodeURIComponent(searchMatch[1].trim());
+            speakText(`Searching Google for ${searchMatch[1].trim()}`);
+            logDebug('Search:', searchMatch[1].trim());
+            window.open(`https://www.google.com/search?q=${q}`, '_blank');
+            return;
+          }
+          // built-in commands
+          const match = findCommand(cmd);
+          if (match) {
+            const siteName = match.cmd.replace(/^open\s+/,'').replace(/\b\w/g,c=>c.toUpperCase());
+            speakText(`Opening ${siteName}`);
+            logDebug('Open site', match.url);
+            window.open(match.url, '_blank');
+            return;
+          }
+          // fallback: send to /process if available
+          fetch('/process', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({command: cmd})
+          }).then(r => {
+            if (!r.ok) throw new Error('bad network');
+            return r.json();
+          }).then(data => {
+            if (data.action === 'speak' && data.text) {
+              speakText(data.text);
+              logDebug('Backend speak:', data.text);
+            } else if (data.action === 'open_url' && data.url) {
+              speakText(`Opening ${data.url}`);
+              window.open(data.url, '_blank');
+            } else {
+              speakText('Sorry, I could not process that.');
+              logDebug('Unknown /process response', data);
             }
-
-            speakText("Initializing Jarvis");
-            appendMessage('jarvis', 'Jarvis: Initializing...');
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.continuous = true;
-
-            state = 'waiting_for_wakeword';
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-                console.log('Heard:', transcript);
-
-                if (state === 'waiting_for_wakeword') {
-                    if (transcript.includes('jarvis')) {
-                        state = 'waiting_for_command';
-                        speakText('Yes Prabir?');
-                        appendMessage('jarvis', 'Jarvis: Yes Prabir?');
-                    }
-                } else if (state === 'waiting_for_command') {
-                    state = 'waiting_for_wakeword';
-                    appendMessage('user', `You: ${transcript}`);
-
-                    // Built-in commands
-                    const builtInCommands = {
-                        "open google": "https://www.google.com",
-                        "open chatgpt": "https://chat.openai.com",
-                        "open instagram": "https://www.instagram.com",
-                        "open github": "https://www.github.com",
-                        "open youtube": "https://www.youtube.com",
-                        "open facebook": "https://www.facebook.com"
-                    };
-
-                    const matchedCommand = Object.keys(builtInCommands).find(cmd => transcript.includes(cmd));
-
-                    if (matchedCommand) {
-                        const url = builtInCommands[matchedCommand];
-                        const siteName = matchedCommand.replace("open ", "").replace(/\b\w/g, c => c.toUpperCase());
-                        speakText(`Opening ${siteName}`);
-                        appendMessage('jarvis', `Jarvis: Opening ${siteName}`);
-                        window.open(url, '_blank');
-                    } else {
-                        // Send to backend if not matched
-                        fetch('/process', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ command: transcript })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.action === 'speak') {
-                                appendMessage('jarvis', `Jarvis: ${data.text}`);
-                                speakText(data.text);
-                            } else if (data.action === 'open_url') {
-                                appendMessage('jarvis', `Jarvis: Opening ${data.url}`);
-                                speakText(`Opening ${data.url}`);
-                                window.open(data.url, '_blank');
-                            } else {
-                                appendMessage('jarvis', 'Jarvis: Unknown action');
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Error:', err);
-                            appendMessage('jarvis', 'Jarvis: Error processing command.');
-                        });
-                    }
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-            };
-
-            recognition.onend = () => {
-                // Automatically restart
-                recognition.start();
-            };
-
-            recognition.start();
-            appendMessage('jarvis', 'Jarvis is listening...');
+          }).catch(err => {
+            logDebug('No backend or error', err);
+            speakText('Sorry, I could not process that.');
+          });
         }
-    </script>
+      }
+
+      // manual input handler (for testing)
+      manualBtn.addEventListener('click', ()=> {
+        const v = manualInput.value.trim();
+        if (!v) return;
+        if (v.toLowerCase().startsWith('jarvis ')) {
+          handleTranscript(v.slice(7).trim());
+        } else if (v.toLowerCase().includes('jarvis')) {
+          state = 'waiting_for_command';
+          handleTranscript(v.replace(/jarvis/ig,'').trim());
+        } else {
+          handleTranscript(v);
+        }
+      });
+
+      // mic button
+      micBtn.addEventListener('click', toggleListening);
+      micBtn.addEventListener('keydown', (e)=> { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleListening(); } });
+
+      // init
+      if (!supports) {
+        setStatus('unsupported');
+        logDebug('SpeechRecognition not supported in this browser');
+      } else {
+        setStatus('idle');
+        logDebug('SpeechRecognition appears supported');
+      }
+
+      // stop recognition when page hidden
+      document.addEventListener('visibilitychange', ()=> {
+        if (document.hidden && listening) {
+          try { recognition && recognition.stop(); } catch(e){}
+        } else if (!document.hidden && listening) {
+          try { recognition && recognition.start(); } catch(e){}
+        }
+      });
+
+    })();
+  </script>
 </body>
 </html>
